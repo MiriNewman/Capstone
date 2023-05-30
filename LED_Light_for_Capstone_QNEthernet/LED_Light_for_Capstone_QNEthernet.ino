@@ -16,7 +16,7 @@ using namespace qindesign::network;
 
 constexpr uint32_t kDHCPTimeout = 15000;  // 15 seconds
 constexpr uint16_t kOSCPort = 8000;
-constexpr char kServiceName[] = "osc-example";
+constexpr char kServiceName[] = "Cloud";
 
 EthernetUDP udp;
 uint8_t buf[48];
@@ -36,9 +36,14 @@ uint32_t lightBlueRGB = strip.Color(200, 200, 255);
 uint32_t medPinkRGB = strip.Color(224, 9, 138);
 uint32_t orangeRGB = strip.Color(222, 95, 27);
 
+int red = 0;
+int green = 0;
+int blue = 0;
+
 int colorControl = 0;
 
 bool colorDirectionSwitch = false;
+
 
 void setup() {
   Serial.begin(9600);
@@ -49,6 +54,7 @@ void setup() {
 
 }
 
+/**************************************** BEGIN LOOP ****************************************/
 void loop() {
   int size = udp.parsePacket();
   if (0 < size && static_cast<unsigned int>(size) <= sizeof(buf)) {
@@ -64,23 +70,19 @@ void loop() {
 
   colorControl++;
   colorControl %= 255;
-  if ((colorControl == 0) && (colorDirectionSwitch == false)){
-    colorDirectionSwitch = true;
-    //Serial.println("True");
-  } else if ((colorControl == 0) && (colorDirectionSwitch == true)){
-    colorDirectionSwitch = false;
-    //Serial.println("False");
-  }
   
   delay(50); // set this up to be controllable by a MAX patch
 }
 
-void pixelSet(int pixel, int color){ // deprecated function as of 5/16/23
-  strip.setPixelColor(pixel, color);
-}
+/***************************************** END LOOP *****************************************/
+
+
+/**************************************** BEGIN LEDs ****************************************/
 
 void pixelSetRGB(int pixel, int control){
-  //uint16_t hue = strip.Color(control + pixel, control - pixel, control);
+  /* This function controols the brightness and hues of the LED strip.
+   *
+   */
   uint16_t hue;
   if (colorDirectionSwitch){
     hue = fmod((control - pixel), 255);
@@ -89,7 +91,14 @@ void pixelSetRGB(int pixel, int control){
     hue = fmod((control - pixel), 255);
     hue = map(hue, 0, 255, 60000, 27000);
   }
-  // BUILD A BOOLEAN STATEMENT TO HAVE THINGS RAMP BACK AND FORTH
+  
+  if ((control == 0) && (colorDirectionSwitch == false)){
+    colorDirectionSwitch = true;
+    //Serial.println("True");
+  } else if ((control == 0) && (colorDirectionSwitch == true)){
+    colorDirectionSwitch = false;
+    //Serial.println("False");
+  }
   uint32_t newColor = strip.ColorHSV(hue, 240, 240);
   
 //  if (pixel == 5){
@@ -98,6 +107,8 @@ void pixelSetRGB(int pixel, int control){
   strip.setPixelColor(pixel, newColor); // sets pixel color individually
 }
 
+
+/************************************ BEGIN NETWORK START ***********************************/
 void NetworkBegin(){
   while (!Serial && millis() < 4000) {
     // Wait for Serial
@@ -148,6 +159,5 @@ void NetworkBegin(){
                     kServiceName, kOSCPort);
     }
   }
-
   Serial.println("Waiting for OSC messages...");
 }
