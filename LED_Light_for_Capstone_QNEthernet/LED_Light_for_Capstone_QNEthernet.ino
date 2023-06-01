@@ -44,10 +44,10 @@ int colorControl = 0;
 
 bool colorDirectionSwitch = false;
 
-
+/*************************************** BEGIN SETUP ****************************************/
 void setup() {
   Serial.begin(9600);
-  NetworkBegin();
+  //NetworkBegin(); // RE-ENABLE THIS AFTER LED TESTING IS DONE!!!
   
   strip.begin();
   strip.show(); // these reset the LED memory to start afresh
@@ -69,7 +69,7 @@ void loop() {
   strip.show(); // actually displays the what's set in PixelSetRGB / setPixelColor();
 
   colorControl++;
-  colorControl %= 255;
+  colorControl %= 255 * LED_COUNT;
   
   delay(50); // set this up to be controllable by a MAX patch
 }
@@ -83,30 +83,27 @@ void pixelSetRGB(int pixel, int control){
   /* This function controols the brightness and hues of the LED strip.
    *
    */
-  uint16_t hue;
-  if (colorDirectionSwitch){
-    hue = fmod((control - pixel), 255);
-    hue = map(hue, 0, 255, 27000, 60000); // have this be a variable to be set by the MAX patch
-  } else {
-    hue = fmod((control - pixel), 255);
-    hue = map(hue, 0, 255, 60000, 27000);
+  uint32_t hue;
+  
+  //hue = 255 * sin((control + (pixel + 1)) / 25);
+  hue = ChangeColorChanger(control + (pixel + 1));
+
+  int adjustedHue = map(hue, 0, 255, 27000, 60000); // I hate the magic number too, don't worry
+  uint32_t newColor = strip.ColorHSV(adjustedHue, 240, 240);
+
+  if (pixel == 5 || pixel == 50){
+    //Serial.println(255 * (sin(control * .025)));
+    Serial.print(pixel); Serial.print(", "); Serial.print(hue); Serial.print(", "); Serial.println(newColor);
   }
   
-  if ((control == 0) && (colorDirectionSwitch == false)){
-    colorDirectionSwitch = true;
-    //Serial.println("True");
-  } else if ((control == 0) && (colorDirectionSwitch == true)){
-    colorDirectionSwitch = false;
-    //Serial.println("False");
-  }
-  uint32_t newColor = strip.ColorHSV(hue, 240, 240);
-  
-//  if (pixel == 5){
-//    Serial.print(control); Serial.print(", "); Serial.print(hue); Serial.print(", "); Serial.println(newColor);
-//  }
-  strip.setPixelColor(pixel, newColor); // sets pixel color individually
+  strip.setPixelColor(pixel, newColor);
+
 }
 
+int ChangeColorChanger(int control){
+  int colorChanger = abs(255 * sin(control * .01));
+  return colorChanger;
+}
 
 /************************************ BEGIN NETWORK START ***********************************/
 void NetworkBegin(){
@@ -129,10 +126,12 @@ void NetworkBegin(){
   }
   if (!Ethernet.waitForLocalIP(kDHCPTimeout)) {
     Serial.println("Failed to get IP address from DHCP");
+    Serial.println("Unplug Teensy from power and try again, then check ethernet and network connections.");
     return;
   }
 
-  IPAddress ip = Ethernet.localIP();
+  //IPAddress ip = Ethernet.localIP();
+  IPAddress ip = {10,0,0,1};
   Serial.printf("    Local IP     = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
   ip = Ethernet.subnetMask();
   Serial.printf("    Subnet mask  = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
