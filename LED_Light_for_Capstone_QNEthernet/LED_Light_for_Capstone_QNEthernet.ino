@@ -1,4 +1,5 @@
 #include <LiteOSCParser.h>
+::qindesign::osc::LiteOSCParser osc;
 
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
@@ -9,8 +10,7 @@
 
 using namespace qindesign::network;
 
-// IP scheme 10.0.0.x
-// IP scheme 10.0.10.x for ESP (rainstick, etc)
+// IP scheme 192.168.1.[20-24] for clouds
 
 // TEST TEENSY IP: 192.168.1.100
 
@@ -42,12 +42,15 @@ int blue = 0;
 
 int colorControl = 0;
 
+bool isRaining = false;
+bool isThunder = false;
+
 bool colorDirectionSwitch = false;
 
 /*************************************** BEGIN SETUP ****************************************/
 void setup() {
   Serial.begin(9600);
-  //NetworkBegin(); // RE-ENABLE THIS AFTER LED TESTING IS DONE!!!
+  NetworkBegin(); // RE-ENABLE THIS AFTER LED TESTING IS DONE!!!
   
   strip.begin();
   strip.show(); // these reset the LED memory to start afresh
@@ -56,11 +59,7 @@ void setup() {
 
 /**************************************** BEGIN LOOP ****************************************/
 void loop() {
-  int size = udp.parsePacket();
-  if (0 < size && static_cast<unsigned int>(size) <= sizeof(buf)) {
-    udp.read(buf, size);
-    printOSC(Serial, buf, size);
-  }
+  ReadOSC();
   
   for (int i = 0; i < LED_COUNT; i++){ // iterates through the LED strip to give each one a unique color
     pixelSetRGB(i, colorControl);
@@ -93,7 +92,7 @@ void pixelSetRGB(int pixel, int control){
 
   if (pixel == 5 || pixel == 50){
     //Serial.println(255 * (sin(control * .025)));
-    Serial.print(pixel); Serial.print(", "); Serial.print(hue); Serial.print(", "); Serial.println(newColor);
+    //Serial.print(pixel); Serial.print(", "); Serial.print(hue); Serial.print(", "); Serial.println(newColor);
   }
   
   strip.setPixelColor(pixel, newColor);
@@ -130,8 +129,8 @@ void NetworkBegin(){
     return;
   }
 
-  //IPAddress ip = Ethernet.localIP();
-  IPAddress ip = {10,0,0,1};
+  IPAddress ip = Ethernet.localIP(); // our Router has reserved IPs for each MAC address
+  //IPAddress ip = Ethernet.setLocalIP({192,168,1,10});
   Serial.printf("    Local IP     = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
   ip = Ethernet.subnetMask();
   Serial.printf("    Subnet mask  = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
@@ -159,4 +158,23 @@ void NetworkBegin(){
     }
   }
   Serial.println("Waiting for OSC messages...");
+}
+
+float ReadOSC(){
+  char address[10] = {osc.getAddress()};
+  int argumentCount = osc.getArgCount();
+  float oscData = osc.getFloat(0);
+
+  float oscBuf;
+  float oscSize;
+  
+  int size = udp.parsePacket();
+  if (0 < size && static_cast<unsigned int>(size) <= sizeof(buf)) {
+    udp.read(buf, size);
+    oscBuf = udp.read(buf, size);
+    printOSC(Serial, buf, size);
+    Serial.println(oscBuf);
+    //Serial.print(argumentCount); Serial.print(": "); Serial.println(oscData);
+  }
+  return oscData;
 }

@@ -10,8 +10,8 @@
 
 /************************WIFI CONTROL STUFF***************************/
 
-const char * networkName = "TerMirinator: Genysis"; // name of network
-const char * networkPswd = "ThisSucks"; // network password
+const char * networkName = "paulSwift"; // name of network
+const char * networkPswd = "thankyou"; // network password
 
 const char * udpAddress = "10.0.10.0"; // ESP32 naming scheme: 10.0.10.x
 const int udpPort = 3333;

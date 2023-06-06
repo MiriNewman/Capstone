@@ -80,7 +80,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 420.0, 368.0, 73.0, 35.0 ],
-					"text" : "/intensity 0.001974"
+					"text" : "/intensity 0.033905"
 				}
 
 			}
@@ -193,8 +193,8 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 121.5, 477.0, 165.0, 22.0 ],
-					"text" : "udpsend 192.168.1.100 8000"
+					"patching_rect" : [ 121.5, 477.0, 158.0, 22.0 ],
+					"text" : "udpsend 192.168.1.23 8000"
 				}
 
 			}
