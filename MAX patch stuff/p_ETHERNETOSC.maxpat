@@ -74,13 +74,12 @@
 , 			{
 				"box" : 				{
 					"id" : "obj-29",
-					"linecount" : 2,
 					"maxclass" : "message",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 420.0, 368.0, 73.0, 35.0 ],
-					"text" : "/intensity 0.033905"
+					"patching_rect" : [ 420.0, 368.0, 73.0, 22.0 ],
+					"text" : "/intensity 0."
 				}
 
 			}
@@ -194,7 +193,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 121.5, 477.0, 158.0, 22.0 ],
-					"text" : "udpsend 192.168.1.23 8000"
+					"text" : "udpsend 192.168.1.20 8000"
 				}
 
 			}
@@ -218,7 +217,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 262.0, 215.0, 50.0, 22.0 ],
-					"text" : "start"
+					"text" : "done"
 				}
 
 			}
@@ -292,7 +291,7 @@
 					"maxclass" : "inlet",
 					"numinlets" : 0,
 					"numoutlets" : 1,
-					"outlettype" : [ "" ],
+					"outlettype" : [ "int" ],
 					"patching_rect" : [ 172.0, 68.0, 30.0, 30.0 ]
 				}
 

@@ -1,11 +1,12 @@
-#include <LiteOSCParser.h>
-::qindesign::osc::LiteOSCParser osc;
+//#include <LiteOSCParser.h>
+//::qindesign::osc::LiteOSCParser osc;
 
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
 #include <QNEthernet.h>
 
 #include "OSC.h"
+#include <OSCBundle.h>
 //#include <LibPrintf.h>
 
 using namespace qindesign::network;
@@ -46,6 +47,7 @@ bool isRaining = false;
 bool isThunder = false;
 
 bool colorDirectionSwitch = false;
+float oscData = 0.0;
 
 /*************************************** BEGIN SETUP ****************************************/
 void setup() {
@@ -59,10 +61,11 @@ void setup() {
 
 /**************************************** BEGIN LOOP ****************************************/
 void loop() {
-  ReadOSC();
+  //ReadOSC();
+  OSCMsgReceive();
   
   for (int i = 0; i < LED_COUNT; i++){ // iterates through the LED strip to give each one a unique color
-    pixelSetRGB(i, colorControl);
+    pixelSetRGB(i, colorControl, oscData);
   }
   
   strip.show(); // actually displays the what's set in PixelSetRGB / setPixelColor();
@@ -78,21 +81,27 @@ void loop() {
 
 /**************************************** BEGIN LEDs ****************************************/
 
-void pixelSetRGB(int pixel, int control){
+void pixelSetRGB(int pixel, int control, float loudness){
   /* This function controols the brightness and hues of the LED strip.
    *
    */
-  uint32_t hue;
+  //uint32_t hue;
+  float hue;
+  loudness = map(loudness, 0., 1., 0.5, 1.);
   
-  //hue = 255 * sin((control + (pixel + 1)) / 25);
   hue = ChangeColorChanger(control + (pixel + 1));
+  if (pixel == 5 || pixel == 50){
+     Serial.print("Loudness in pixelSetRGB is: "); Serial.println(loudness);
+     Serial.print(loudness); Serial.print(" || "); Serial.print(hue); Serial.print(" -> ");
+     //Serial.println(hue);
+  }
+  hue *= loudness;
 
   int adjustedHue = map(hue, 0, 255, 27000, 60000); // I hate the magic number too, don't worry
   uint32_t newColor = strip.ColorHSV(adjustedHue, 240, 240);
 
   if (pixel == 5 || pixel == 50){
-    //Serial.println(255 * (sin(control * .025)));
-    //Serial.print(pixel); Serial.print(", "); Serial.print(hue); Serial.print(", "); Serial.println(newColor);
+     Serial.println(hue);
   }
   
   strip.setPixelColor(pixel, newColor);
@@ -160,21 +169,24 @@ void NetworkBegin(){
   Serial.println("Waiting for OSC messages...");
 }
 
-float ReadOSC(){
-  char address[10] = {osc.getAddress()};
-  int argumentCount = osc.getArgCount();
-  float oscData = osc.getFloat(0);
-
-  float oscBuf;
-  float oscSize;
-  
-  int size = udp.parsePacket();
-  if (0 < size && static_cast<unsigned int>(size) <= sizeof(buf)) {
-    udp.read(buf, size);
-    oscBuf = udp.read(buf, size);
-    printOSC(Serial, buf, size);
-    Serial.println(oscBuf);
-    //Serial.print(argumentCount); Serial.print(": "); Serial.println(oscData);
+/************************************** BEGIN OSC SHIT **************************************/
+void OSCMsgReceive(){
+  OSCMessage msgIN;
+  int size;
+  if((size = udp.parsePacket())>0){
+    while(size--)
+      msgIN.fill(udp.read());
+    if(!msgIN.hasError()){
+      msgIN.route("/intensity", IntensityOSC); //first value is OSC tag, second is function it is calling;
+      Serial.println("Received in Reception, ");
+    }
   }
-  return oscData;
+}
+
+void IntensityOSC(OSCMessage &msg, float addrOffset){
+  oscData = (float) msg.getFloat(0);
+  
+  Serial.print("... and in Print! UwU ");
+  //Serial.print(msg);
+  Serial.println(oscData);
 }
