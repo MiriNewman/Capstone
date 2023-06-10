@@ -36,17 +36,14 @@ uint32_t whiteRGB = strip.Color(255, 255, 255);
 uint32_t lightBlueRGB = strip.Color(200, 200, 255); 
 uint32_t medPinkRGB = strip.Color(224, 9, 138);
 uint32_t orangeRGB = strip.Color(222, 95, 27);
-
-int red = 0;
-int green = 0;
-int blue = 0;
+uint32_t lightFlash = strip.Color(255, 255, 255);
+uint32_t allBlack = strip.Color(0, 0, 0);
 
 int colorControl = 0;
 
+/* variables to be controlled by OSC functions at the bottom*/
 bool isRaining = false;
 bool isThunder = false;
-
-bool colorDirectionSwitch = false;
 float oscData = 0.0;
 
 /*************************************** BEGIN SETUP ****************************************/
@@ -71,7 +68,7 @@ void loop() {
   strip.show(); // actually displays the what's set in PixelSetRGB / setPixelColor();
 
   colorControl++;
-  colorControl %= 255 * LED_COUNT;
+  colorControl %= 255 * LED_COUNT; // very slow reset
   
   delay(50); // set this up to be controllable by a MAX patch
 }
@@ -86,7 +83,8 @@ void pixelSetRGB(int pixel, int control, float loudness){
    *
    */
   //uint32_t hue;
-  float hue;
+  float hue = 0;
+  int adjustedHue = 0;
   loudness = map(loudness, 0., 1., 0.5, 1.);
   
   hue = ChangeColorChanger(control + (pixel + 1));
@@ -97,7 +95,12 @@ void pixelSetRGB(int pixel, int control, float loudness){
   }
   hue *= loudness;
 
-  int adjustedHue = map(hue, 0, 255, 27000, 60000); // I hate the magic number too, don't worry
+  if (isRaining){
+    adjustedHue = map(hue, 0, 255, 27000, 60000); // Set this range to be dimmer / more blue
+  } else {
+    adjustedHue = map(hue, 0, 255, 27000, 60000); // Set this range to be more yellow/orange/pink
+  }
+  
   uint32_t newColor = strip.ColorHSV(adjustedHue, 240, 240);
 
   if (pixel == 5 || pixel == 50){
@@ -111,6 +114,34 @@ void pixelSetRGB(int pixel, int control, float loudness){
 int ChangeColorChanger(int control){
   int colorChanger = abs(255 * sin(control * .01));
   return colorChanger;
+}
+
+void LightningStrikeLED(){
+  // light flash function for the Lightning Strike. whole operation should take about 1 second
+
+  //private bool lightIsOn = true;
+  //private int flashCount = 0; // the maximum flashes will be 3 for  _a e s t h e t i c_
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, lightFlash);
+  }
+  delay(125);
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, allBlack);
+  }
+  delay(125);
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, lightFlash);
+  }
+  delay(125);
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, allBlack);
+  }
+  delay(125);
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, lightFlash);
+  }
+  delay(500);
+  isThunder = false;
 }
 
 /************************************ BEGIN NETWORK START ***********************************/
@@ -178,7 +209,9 @@ void OSCMsgReceive(){
       msgIN.fill(udp.read());
     if(!msgIN.hasError()){
       msgIN.route("/intensity", IntensityOSC); //first value is OSC tag, second is function it is calling;
-      Serial.println("Received in Reception, ");
+      //Serial.println("Received in Reception, ");
+      msgIN.route("/thunder", ThunderOSC);
+      msgIN.route("/raining", RainingOSC);
     }
   }
 }
@@ -189,4 +222,18 @@ void IntensityOSC(OSCMessage &msg, float addrOffset){
   Serial.print("... and in Print! UwU ");
   //Serial.print(msg);
   Serial.println(oscData);
+}
+
+void ThunderOSC(OSCMessage &msg, float addrOffset){
+  isThunder = true;
+  LightningStrikeLED();
+}
+
+void RainingOSC(OSCMessage &msg, float addrOffset){
+  int rainData = msg.getInt(0);
+  if (rainData == 1){
+    isRaining = true; // boolean from up top, affects pixelSetRGB;
+  } else {
+    isRaining == false;
+  }
 }
