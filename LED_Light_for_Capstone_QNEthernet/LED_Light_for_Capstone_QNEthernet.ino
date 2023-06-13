@@ -1,6 +1,3 @@
-//#include <LiteOSCParser.h>
-//::qindesign::osc::LiteOSCParser osc;
-
 #include <Adafruit_NeoPixel.h>
 #include <math.h>
 #include <QNEthernet.h>
@@ -25,17 +22,17 @@ uint8_t buf[48];
 bool ethernetIsConnected = false;
 
 #define LED_PIN 6
-#define LED_COUNT 90 //change to however many lights we have
+#define LED_COUNT 65 //change to however many lights we have
 #define ETHERNET_PIN 10
 
 Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_BGR + NEO_KHZ800); 
 // the lights we have are RGB and use WS2812
 
 uint32_t stormyRGB = strip.Color(20, 50, 50); // red, green, blue
-uint32_t whiteRGB = strip.Color(255, 255, 255);
-uint32_t lightBlueRGB = strip.Color(200, 200, 255); 
-uint32_t medPinkRGB = strip.Color(224, 9, 138);
-uint32_t orangeRGB = strip.Color(222, 95, 27);
+int lightBlueRGB[] = {255, 200, 200};
+int yellowRGB[] = {255, 230, 255};
+int sunnyRGB[] = {50, 255, 150}; // blue, red, green
+int rainyRGB[] = {150, 90, 50};
 uint32_t lightFlash = strip.Color(255, 255, 255);
 uint32_t allBlack = strip.Color(0, 0, 0);
 
@@ -52,6 +49,9 @@ void setup() {
   NetworkBegin(); // RE-ENABLE THIS AFTER LED TESTING IS DONE!!!
   
   strip.begin();
+  for (int i = 0; i < LED_COUNT; i++){
+    strip.setPixelColor(i, 0, 0, 0);
+  }
   strip.show(); // these reset the LED memory to start afresh
 
 }
@@ -83,29 +83,34 @@ void pixelSetRGB(int pixel, int control, float loudness){
    *
    */
   //uint32_t hue;
-  float hue = 0;
+  uint32_t hue = strip.Color(0, 0 , 0);
   int adjustedHue = 0;
   loudness = map(loudness, 0., 1., 0.5, 1.);
   
-  hue = ChangeColorChanger(control + (pixel + 1));
-  if (pixel == 5 || pixel == 50){
-     Serial.print("Loudness in pixelSetRGB is: "); Serial.println(loudness);
-     Serial.print(loudness); Serial.print(" || "); Serial.print(hue); Serial.print(" -> ");
-     //Serial.println(hue);
-  }
-  hue *= loudness;
+  //hue = ChangeColorChanger(control + (pixel + 1));
+  hue = 0;
 
   if (isRaining){
-    adjustedHue = map(hue, 0, 255, 27000, 60000); // Set this range to be dimmer / more blue
+    hue = strip.Color(rainyRGB[0] * loudness,
+                      rainyRGB[1] * loudness,
+                      rainyRGB[2] * loudness);
+    //adjustedHue = map(hue, 8000000, 12000000, 0, 60000);
   } else {
-    adjustedHue = map(hue, 0, 255, 27000, 60000); // Set this range to be more yellow/orange/pink
+    hue = strip.Color(sunnyRGB[0] * loudness, 
+                      sunnyRGB[1] * loudness, 
+                      sunnyRGB[2] * loudness);
   }
+//  if (pixel == 5){
+//    Serial.print("Hue: "); 
+//    if (isRaining){
+//      Serial.print(lightBlueRGB[0]); Serial.print(lightBlueRGB[1]); Serial.println(lightBlueRGB[2]);
+//    } else {
+//      Serial.print(yellowRGB[0]); Serial.print(yellowRGB[1]); Serial.println(yellowRGB[2]);
+//    }
+//  }
   
-  uint32_t newColor = strip.ColorHSV(adjustedHue, 240, 240);
-
-  if (pixel == 5 || pixel == 50){
-     Serial.println(hue);
-  }
+  //uint32_t newColor = strip.ColorHSV(adjustedHue, 240, 240);
+  uint32_t newColor = hue;
   
   strip.setPixelColor(pixel, newColor);
 
@@ -118,27 +123,25 @@ int ChangeColorChanger(int control){
 
 void LightningStrikeLED(){
   // light flash function for the Lightning Strike. whole operation should take about 1 second
-
-  //private bool lightIsOn = true;
-  //private int flashCount = 0; // the maximum flashes will be 3 for  _a e s t h e t i c_
+  
   for (int i = 0; i < LED_COUNT; i++){
-    strip.setPixelColor(i, lightFlash);
+    strip.setPixelColor(i, 255, 255, 255);
   }
   delay(125);
   for (int i = 0; i < LED_COUNT; i++){
-    strip.setPixelColor(i, allBlack);
+    strip.setPixelColor(i, 0, 0, 0);
   }
   delay(125);
   for (int i = 0; i < LED_COUNT; i++){
-    strip.setPixelColor(i, lightFlash);
+    strip.setPixelColor(i, 255, 255, 255);
   }
   delay(125);
   for (int i = 0; i < LED_COUNT; i++){
-    strip.setPixelColor(i, allBlack);
+    strip.setPixelColor(i, 0, 0, 0);
   }
   delay(125);
   for (int i = 0; i < LED_COUNT; i++){
-    strip.setPixelColor(i, lightFlash);
+    strip.setPixelColor(i, 255, 255, 255);
   }
   delay(500);
   isThunder = false;
@@ -170,7 +173,6 @@ void NetworkBegin(){
   }
 
   IPAddress ip = Ethernet.localIP(); // our Router has reserved IPs for each MAC address
-  //IPAddress ip = Ethernet.setLocalIP({192,168,1,10});
   Serial.printf("    Local IP     = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
   ip = Ethernet.subnetMask();
   Serial.printf("    Subnet mask  = %u.%u.%u.%u\r\n", ip[0], ip[1], ip[2], ip[3]);
@@ -209,7 +211,6 @@ void OSCMsgReceive(){
       msgIN.fill(udp.read());
     if(!msgIN.hasError()){
       msgIN.route("/intensity", IntensityOSC); //first value is OSC tag, second is function it is calling;
-      //Serial.println("Received in Reception, ");
       msgIN.route("/thunder", ThunderOSC);
       msgIN.route("/raining", RainingOSC);
     }
@@ -218,22 +219,21 @@ void OSCMsgReceive(){
 
 void IntensityOSC(OSCMessage &msg, float addrOffset){
   oscData = (float) msg.getFloat(0);
-  
-  Serial.print("... and in Print! UwU ");
-  //Serial.print(msg);
-  Serial.println(oscData);
 }
 
 void ThunderOSC(OSCMessage &msg, float addrOffset){
   isThunder = true;
+  Serial.println("Thunder!");
   LightningStrikeLED();
 }
 
 void RainingOSC(OSCMessage &msg, float addrOffset){
   int rainData = msg.getInt(0);
-  if (rainData == 1){
+  if (rainData == true){
     isRaining = true; // boolean from up top, affects pixelSetRGB;
+    Serial.println("Rain has started.");
   } else {
-    isRaining == false;
+    isRaining = false;
+    Serial.println("The rain has ended.");
   }
 }

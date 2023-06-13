@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 59.0, 104.0, 640.0, 480.0 ],
+		"rect" : [ 94.0, 386.0, 640.0, 480.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -40,6 +40,18 @@
 		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-3",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 517.5, 145.0, 29.5, 22.0 ],
+					"text" : "20"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-2",
 					"maxclass" : "toggle",
 					"numinlets" : 1,
@@ -54,71 +66,10 @@
 				"box" : 				{
 					"id" : "obj-28",
 					"maxclass" : "newobj",
-					"numinlets" : 3,
+					"numinlets" : 4,
 					"numoutlets" : 0,
 					"patching_rect" : [ 424.5, 215.0, 112.0, 22.0 ],
 					"text" : "p_ETHERNETOSC"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-26",
-					"maxclass" : "number",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "", "bang" ],
-					"parameter_enable" : 0,
-					"patching_rect" : [ 403.0, 407.0, 50.0, 22.0 ]
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-24",
-					"linecount" : 2,
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 432.0, 367.0, 50.0, 35.0 ],
-					"text" : "drumLoop.aif"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-20",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 312.0, 367.0, 50.0, 22.0 ],
-					"text" : "start"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-14",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 343.0, 337.0, 139.0, 22.0 ],
-					"text" : "unpack sym int sym"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-13",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 216.25, 215.0, 128.0, 22.0 ],
-					"text" : "start 1 drumLoop.aif"
 				}
 
 			}
@@ -161,13 +112,24 @@
 , 			{
 				"box" : 				{
 					"basictuning" : 440,
-					"clipheight" : 91.0,
+					"clipheight" : 45.0,
 					"data" : 					{
 						"clips" : [ 							{
 								"absolutepath" : "drumLoop.aif",
 								"filename" : "drumLoop.aif",
 								"filekind" : "audiofile",
 								"id" : "u070002942",
+								"loop" : 1,
+								"content_state" : 								{
+									"loop" : 1
+								}
+
+							}
+, 							{
+								"absolutepath" : "/Users/fishernewman/Music/Music/Media/Music/Vildhjarta/måsstaden under vatten/1-02 när de du älskar kommer tillbaka från de döda.mp3",
+								"filename" : "1-02 när de du älskar kommer tillbaka från de döda.mp3",
+								"filekind" : "audiofile",
+								"id" : "u934005377",
 								"loop" : 1,
 								"content_state" : 								{
 									"loop" : 1
@@ -198,43 +160,6 @@
  ],
 		"lines" : [ 			{
 				"patchline" : 				{
-					"destination" : [ "obj-14", 0 ],
-					"order" : 1,
-					"source" : [ "obj-13", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-28", 1 ],
-					"order" : 0,
-					"source" : [ "obj-13", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-20", 1 ],
-					"source" : [ "obj-14", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-24", 1 ],
-					"source" : [ "obj-14", 2 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-26", 0 ],
-					"source" : [ "obj-14", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-28", 0 ],
 					"source" : [ "obj-2", 0 ]
 				}
@@ -242,17 +167,8 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-13", 1 ],
-					"order" : 0,
-					"source" : [ "obj-7", 3 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-13", 0 ],
-					"order" : 1,
-					"source" : [ "obj-7", 3 ]
+					"destination" : [ "obj-28", 3 ],
+					"source" : [ "obj-3", 0 ]
 				}
 
 			}
@@ -297,6 +213,13 @@
 			}
  ],
 		"dependency_cache" : [ 			{
+				"name" : "1-02 när de du älskar kommer tillbaka från de döda.mp3",
+				"bootpath" : "~/Music/Music/Media/Music/Vildhjarta/måsstaden under vatten",
+				"patcherrelativepath" : "../../../Music/Music/Media/Music/Vildhjarta/måsstaden under vatten",
+				"type" : "Mp3",
+				"implicit" : 1
+			}
+, 			{
 				"name" : "drumLoop.aif",
 				"bootpath" : "C74:/media/msp",
 				"type" : "AIFF",
